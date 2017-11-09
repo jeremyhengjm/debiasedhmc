@@ -103,7 +103,7 @@ for (igrid in 1:nstepsizes){
 }
 toc()
 
-save(nstepsizes, grid_stepsize, nreps, hamiltonian_error, file = "inst/coxprocess/hmc.stepsize.selection.RData")
+# save(nstepsizes, grid_stepsize, nreps, hamiltonian_error, file = "inst/coxprocess/hmc.stepsize.selection.RData")
 
 
 

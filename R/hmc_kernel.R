@@ -17,20 +17,18 @@ get_hmc_kernel <- function(logtarget, gradlogtarget, stepsize, nsteps, dimension
   # leap frog integrator
   # note that some papers use the notation U for - logtarget, so that there are minus signs everywhere
   leapfrog <- function(x, v){
-    xtraj <- matrix(nrow = nsteps+1, ncol = length(x))
-    xtraj[1,] <- x
     v <- v + stepsize * gradlogtarget(x) / 2
     for (step in 1:nsteps){
       x <- x + stepsize * v
-      xtraj[step+1,] <- x
       if (step != nsteps){
         v <- v + stepsize * gradlogtarget(x)
       }
     }
     v <- v + stepsize * gradlogtarget(x) / 2
     # we could negate the momentum but we don't use it here
-    return(list(x = x, v = v, xtraj = xtraj))
+    return(list(x = x, v = v))
   }
+
   # One step of HMC
   kernel <- function(chain_state, iteration){
     current_v <- rnorm(dimension) # velocity or momentum
@@ -42,23 +40,16 @@ get_hmc_kernel <- function(logtarget, gradlogtarget, stepsize, nsteps, dimension
     accept_ratio <- logtarget(proposed_x) - logtarget(chain_state)
     # the acceptance ratio also features the "kinetic energy" term of the extended target
     accept_ratio <- accept_ratio + sum(current_v^2) / 2 - sum(proposed_v^2) / 2
-    # we store the entire x-trajectory here, for plotting purposes
-    # the first row stores the current value (which is also the last value of the latest accepted trajectory)
-    xtraj <- matrix(nrow = nsteps+1, ncol = dimension)
     accept <- FALSE
     if (log(runif(1)) < accept_ratio){
       chain_state <- proposed_x
       current_v <- proposed_v
-      xtraj <- leapfrog_result$xtraj
       accept <- TRUE
     } else {
-      # if we reject, the entire x-trajectory is boring
-      for (istep in 1:(nsteps+1)){
-        xtraj[istep,] <- chain_state
-      }
     }
-    return(list(chain_state = chain_state, xtraj = xtraj, accept = accept))
+    return(list(chain_state = chain_state, accept = accept))
   }
+
   # One step of HMC
   coupled_kernel <- function(chain_state1, chain_state2, iteration){
     current_v <- rnorm(dimension) # velocity or momentum, shared by both chains

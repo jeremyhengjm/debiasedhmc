@@ -12,10 +12,14 @@
 #' \code{single_kernel}, \code{coupled_kernel}.
 #'@export
 get_mh_kernel <- function(logtarget, Sigma_proposal, dimension){
-  Sigma1_chol <- chol(Sigma_proposal)
-  Sigma1_chol_inv <- solve(chol(Sigma_proposal))
-  Sigma2_chol <- chol(Sigma_proposal)
-  Sigma2_chol_inv <- solve(chol(Sigma_proposal))
+  proposal_std <- sqrt(diag(Sigma_proposal))
+  Sigma1_chol <- diag(proposal_std, dimension, dimension)
+  Sigma1_chol_inv <- diag(1 / proposal_std, dimension, dimension)
+
+  # Sigma1_chol <- chol(Sigma_proposal)
+  # Sigma1_chol_inv <- solve(chol(Sigma_proposal))
+  # Sigma2_chol <- chol(Sigma_proposal)
+  # Sigma2_chol_inv <- solve(chol(Sigma_proposal))
   zeromean <- rep(0, dimension)
   # single kernel
   kernel <- function(chain_state, iteration){
@@ -32,8 +36,10 @@ get_mh_kernel <- function(logtarget, Sigma_proposal, dimension){
   coupled_kernel <- function(chain_state1, chain_state2, iteration){
     distance_ <- mean((chain_state1 - chain_state2)^2)
     # proposal_value <- gaussian_max_coupling(chain_state1, chain_state2, Sigma_proposal, Sigma_proposal)
+    # proposal_value <- gaussian_max_coupling_cholesky_R(chain_state1, chain_state2,
+                                                       # Sigma1_chol, Sigma2_chol, Sigma1_chol_inv, Sigma2_chol_inv)
     proposal_value <- gaussian_max_coupling_cholesky_R(chain_state1, chain_state2,
-                                                       Sigma1_chol, Sigma2_chol, Sigma1_chol_inv, Sigma2_chol_inv)
+                                                       Sigma1_chol, Sigma1_chol, Sigma1_chol_inv, Sigma1_chol_inv)
     proposal1 <- proposal_value[,1]
     proposal2 <- proposal_value[,2]
     proposal_pdf1 <- logtarget(proposal1)

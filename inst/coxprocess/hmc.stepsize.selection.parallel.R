@@ -1,28 +1,32 @@
 rm(list = ls())
 library(tictoc)
 library(debiasedhmc)
+library(parallel)
+
+# parallel RNG using L'Ecuyer et al (2002)
+RNGkind("L'Ecuyer-CMRG") # L'Ecuyer CMRG required for multiple streams
+igrid <- as.integer(Sys.getenv('SLURM_ARRAY_TASK_ID'))
+set.seed(1) # initial seed
+for (i in 1:igrid){
+  .Random.seed <- nextRNGStream(.Random.seed) # compute appropriate stream
+}
 
 # load cox process model
-load("inst/coxprocess/coxprocess.RData")
+load("coxprocess.RData")
 
 # Hamiltonian function
 hamiltonian <- function(x, v) -logtarget(x) + sum(v^2) / 2
 
 # stepsize selection
 nsteps <- 100
-# grid_stepsize <- seq(1e-2, 1e-1, length.out = 10)
 grid_stepsize <- 1e-2
-# grid_stepsize <- c(1e-2, 1e-1)
+# grid_stepsize <- seq(1e-2, 1e-1, length.out = 10)
 nstepsizes <- length(grid_stepsize)
-# nreps <- 100
-nreps <- 1 # test
-hamiltonian_error <- matrix(nrow = nreps, ncol = nstepsizes)
-tic("Runtime:")
-for (igrid in 1:nstepsizes){
-  igrid
-  cat("Grid:", igrid, "/", nstepsizes, "\n")
-  stepsize <- grid_stepsize[igrid]
+nreps <- 2
+hamiltonian_error <- rep(0, nreps)
 
+tic("Runtime:")
+  stepsize <- grid_stepsize[igrid]
   for (irep in 1:nreps){
     cat("Repetition:", irep, "/", nreps, "\n")
     # store hamiltonian error along trajectory
@@ -42,13 +46,14 @@ for (igrid in 1:nstepsizes){
     }
 
     # store maximum hamiltonian error along trajectory
-    hamiltonian_error[irep, igrid] <- max(h_error)
+    hamiltonian_error[irep] <- max(h_error)
   }
 
-}
-toc()
 
-# save(nstepsizes, grid_stepsize, nreps, hamiltonian_error, file = "hmc.stepsize.selection.RData")
+toc()
+filename <- paste("output.hmc.stepsize.selection.", igrid, ".RData", sep = "")
+
+# save(nstepsizes, grid_stepsize, nreps, hamiltonian_error, file = filename, safe = F)
 
 
 

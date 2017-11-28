@@ -60,7 +60,7 @@ logtarget <- function(x) prior$logdensity(x) + likelihood$log(x)
 gradlogtarget <- function(x) prior$gradlogdensity(x) + likelihood$gradlog(x)
 
 # initial distribution
-rinit <- function() fast_rmvnorm(1, prior_mean, prior_cov)
+rinit <- function() as.numeric(fast_rmvnorm(1, prior_mean, prior_cov))
 
 save.image(file = "inst/coxprocess/coxprocess.RData")
 

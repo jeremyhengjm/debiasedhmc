@@ -31,6 +31,7 @@ coupled_chains <- function(single_kernel, coupled_kernel, rinit, K = 1, max_iter
   p <- length(chain_state1)
   samples1 <- matrix(nrow = K+preallocate+1, ncol = p)
   samples2 <- matrix(nrow = K+preallocate, ncol = p)
+  nrowsamples1 <- K+preallocate+1
   samples1[1,] <- chain_state1
   samples2[1,] <- chain_state2
   current_nsamples1 <- 1
@@ -56,11 +57,12 @@ coupled_chains <- function(single_kernel, coupled_kernel, rinit, K = 1, max_iter
         meetingtime <- iter
       }
     }
-    if ((current_nsamples1+1) > nrow(samples1)){
+    if ((current_nsamples1+1) > nrowsamples1){
       # print('increase nrow')
-      new_rows <- nrow(samples2)
-      samples1 <- rbind(samples1, matrix(NA, nrow = new_rows, ncol = ncol(samples1)))
-      samples2 <- rbind(samples2, matrix(NA, nrow = new_rows, ncol = ncol(samples2)))
+      new_rows <- nrowsamples1 - 1
+      nrowsamples1 <- nrowsamples1 + new_rows
+      samples1 <- rbind(samples1, matrix(NA, nrow = new_rows, ncol = p))
+      samples2 <- rbind(samples2, matrix(NA, nrow = new_rows, ncol = p))
     }
     samples1[current_nsamples1+1,] <- chain_state1
     samples2[current_nsamples1,] <- chain_state2
@@ -75,7 +77,6 @@ coupled_chains <- function(single_kernel, coupled_kernel, rinit, K = 1, max_iter
   return(list(samples1 = samples1, samples2 = samples2,
               meetingtime = meetingtime, iteration = iter, finished = finished))
 }
-
 
 ## function to continue coupled chains until step K
 ## c_chain should be the output of coupled_chains

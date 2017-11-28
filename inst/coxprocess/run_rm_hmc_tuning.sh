@@ -1,7 +1,8 @@
 #!/bin/bash
+#SBATCH -J rmhmc_tuning                         # Job name
 #SBATCH -n 1                                    # Number of cores
 #SBATCH -N 1                                    # All cores on one machine
-#SBATCH -t 0-30:00                              # Runtime in D-HH:MM
+#SBATCH -t 0-40:00                              # Runtime in D-HH:MM
 #SBATCH -p shared                               # Partition to submit to
 #SBATCH --mem-per-cpu=8000M                    # Memory pool for all cores (see also --mem-per-cpu)
 #SBATCH --mail-type=END                         # Type of email notification- BEGIN,END,FAIL,ALL

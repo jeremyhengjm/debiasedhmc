@@ -3,6 +3,9 @@ library(tictoc)
 library(debiasedhmc)
 library(parallel)
 
+# load cox process model
+load("coxprocess_with_metric.RData")
+
 # parallel RNG using L'Ecuyer et al (2002)
 RNGkind("L'Ecuyer-CMRG") # L'Ecuyer CMRG required for multiple streams
 igrid <- as.integer(Sys.getenv('SLURM_ARRAY_TASK_ID'))
@@ -10,9 +13,6 @@ set.seed(1) # initial seed
 for (i in 1:igrid){
   .Random.seed <- nextRNGStream(.Random.seed) # compute appropriate stream
 }
-
-# load cox process model
-load("coxprocess_with_metric.RData")
 
 # compute distance
 compute_distance <- function(cchain){
@@ -33,6 +33,7 @@ ngrid_nsteps <- length(grid_nsteps)
 
 # pre-allocate
 distance <- matrix(nrow = nreps, ncol = ngrid_nsteps)
+filename <- paste("output.rm.hmc.contraction", igrid, ".RData", sep = "")
 
 for (istep in 1:ngrid_nsteps){
   # define hmc kernel
@@ -44,13 +45,12 @@ for (istep in 1:ngrid_nsteps){
     cchains <- coupled_chains(hmc$kernel, hmc$coupled_kernel, rinit, max_iterations = max_iterations)
     distance[irep, istep] <- compute_distance(cchains)
     cat("No. of steps", nsteps, "Repetition:", irep, "/", nreps, "\n")
+    save(grid_stepsize, ngrid_stepsize, grid_nsteps, ngrid_nsteps,
+         distance, file = filename, safe = F)
   }
 
 }
 
-filename <- paste("output.rm.hmc.contraction", igrid, ".RData", sep = "")
-save(grid_stepsize, ngrid_stepsize, grid_nsteps, ngrid_nsteps,
-     distance, file = filename, safe = F)
 
 
 

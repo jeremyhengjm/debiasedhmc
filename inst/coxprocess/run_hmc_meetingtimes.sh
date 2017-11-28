@@ -1,12 +1,13 @@
 #!/bin/bash
+#SBATCH -J parameter2                           # Job name
 #SBATCH -n 1                                    # Number of cores
 #SBATCH -N 1                                    # All cores on one machine
-#SBATCH -t 0-05:00                              # Runtime in D-HH:MM
+#SBATCH -t 0-04:00                              # Runtime in D-HH:MM
 #SBATCH -p shared                               # Partition to submit to
-#SBATCH --mem-per-cpu=5000M                    # Memory pool for all cores (see also --mem-per-cpu)
+#SBATCH --mem-per-cpu=3000M                     # Memory pool for all cores (see also --mem-per-cpu)
 #SBATCH --mail-type=END                         # Type of email notification- BEGIN,END,FAIL,ALL
-#SBATCH --mail-user=jjmheng@fas.harvard.edu   # Email
-#SBATCH --array=1-20
+#SBATCH --mail-user=jjmheng@fas.harvard.edu     # Email
+#SBATCH --array=1-50
 
 ## LOAD SOFTWARE ENV ##
 source new-modules.sh
@@ -15,7 +16,7 @@ export R_LIBS_USER=$HOME/apps/R:$R_LIBS_USER
 input=hmc.meetingtimes.R
 cd /n/home07/jeremyhengjm/apps/R/debiasedhmc/inst/coxprocess
 
-srun R CMD BATCH --no-save $input out/$input.$SLURM_ARRAY_TASK_ID.out
+srun R CMD BATCH "--args 2" --no-save $input out/$input.$SLURM_ARRAY_TASK_ID.out
 
-sleep 1                                          # pause to be kind to the scheduler
+#sleep 1                                          # pause to be kind to the scheduler
 

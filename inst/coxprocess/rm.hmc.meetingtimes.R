@@ -4,10 +4,10 @@ library(debiasedhmc)
 library(parallel)
 
 # load cox process model
-load("coxprocess.RData")
+load("coxprocess_with_metric.RData")
 
 # specify stepsize and no. of steps
-load("hmc.contraction.parameters.RData")
+load("rm.hmc.contraction.parameters.RData")
 args <- commandArgs(TRUE)
 iparameter <- as.integer(args[1])
 cat("iparameter:", iparameter, "\n")
@@ -32,10 +32,10 @@ compute_distance <- function(cchain){
 # no. of repetitions and mcmc iterations
 nreps <- 2
 K <- 1000
-max_iterations <- 1000
+max_iterations <- 1000 # L = 1, 10, 20, 30 takes 1.3, 3, 5, 7 seconds per iteration for coupled chain
 
-# define hmc kernel
-hmc <- get_hmc_kernel(logtarget, gradlogtarget, stepsize, nsteps, dimension)
+# define rm-hmc kernel
+hmc <- get_rm_hmc_kernel(logtarget, gradlogtarget, stepsize, nsteps, dimension, metric)
 
 # define mixture kernels
 omega <- 1 / 20
@@ -71,6 +71,6 @@ for (irep in 1:nreps){
   meetingtime[irep] <- cchains$meetingtime
 }
 
-filename <- paste("output.hmc.parameter", iparameter, ".rep", igrid, ".RData", sep = "")
+filename <- paste("output.rm.hmc.parameter", iparameter, ".rep", igrid, ".RData", sep = "")
 save(nreps, max_iterations, stepsize, nsteps, Sigma_std,
      distance, meetingtime, file = filename, safe = F)

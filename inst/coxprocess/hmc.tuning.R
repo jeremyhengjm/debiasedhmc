@@ -1,8 +1,12 @@
+
 rm(list = ls())
 library(tictoc)
 library(debiasedhmc)
 library(parallel)
 library(coda)
+
+# load cox process model
+load("coxprocess.RData")
 
 # parallel RNG using L'Ecuyer et al (2002)
 RNGkind("L'Ecuyer-CMRG") # L'Ecuyer CMRG required for multiple streams
@@ -12,15 +16,12 @@ for (i in 1:igrid){
   .Random.seed <- nextRNGStream(.Random.seed) # compute appropriate stream
 }
 
-# load cox process model
-load("coxprocess.RData")
-
-# compute effective sample size
-compute_ess <- function(trajectory){
-  # ess of means
-  total_ess <- sum(effectiveSize(trajectory))
-  # ess of second moments
-  total_ess <- total_ess + sum(effectiveSize(trajectory^2))
+# compute MCMC variance
+compute_variance <- function(trajectory){
+  # variance of means
+  total_var <- sum(spectrum0.ar(trajectory)$spec)
+  # variance of second moments
+  total_var <- total_var + sum(spectrum0.ar(trajectory^2)$spec)
 
   # ess of covariances (too expensive)
   # sample_mean <- colMeans(trajectory)
@@ -30,7 +31,7 @@ compute_ess <- function(trajectory){
   #                                             (trajectory[, j] - sample_mean[j]) )
   #   }
   # }
-  return(total_ess)
+  return(total_var)
 }
 
 # no. of mcmc iterations
@@ -45,8 +46,10 @@ grid_nsteps <- c(1, 10, 20, 30) # c(0.4, 1.2, 2.4, 3.6) seconds per mcmc iterati
 ngrid_nsteps <- length(grid_nsteps)
 
 # pre-allocate
-ess <- rep(0, ngrid_nsteps)
+variance <- rep(0, ngrid_nsteps)
 acceptprob <- rep(0, ngrid_nsteps)
+runtimes <- rep(0, ngrid_nsteps)
+filename <- paste("output.hmc.tuning", igrid, ".RData", sep = "")
 
 for (istep in 1:ngrid_nsteps){
   # define hmc kernel
@@ -67,15 +70,11 @@ for (istep in 1:ngrid_nsteps){
   }
   timing <- toc()
   runtime <- timing$toc - timing$tic
-  ess[istep] <- compute_ess(chain[burnin:nmcmc, ]) / runtime
+  variance[istep] <- compute_variance(chain[burnin:nmcmc, ])
   acceptprob[istep] <- accept / nmcmc
+  runtimes[istep] <- runtime
+  save(grid_stepsize, ngrid_stepsize, grid_nsteps, ngrid_nsteps,
+       variance, acceptprob, runtimes, file = filename, safe = F)
 
 }
-
-filename <- paste("output.hmc.tuning", igrid, ".RData", sep = "")
-save(grid_stepsize, ngrid_stepsize, grid_nsteps, ngrid_nsteps,
-     ess, acceptprob, file = filename, safe = F)
-
-
-
 

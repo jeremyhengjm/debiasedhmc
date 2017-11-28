@@ -4,7 +4,7 @@ library(debiasedhmc)
 library(parallel)
 
 # load cox process model
-load("coxprocess.RData")
+load("coxprocess_with_metric.RData")
 
 # parallel RNG using L'Ecuyer et al (2002)
 RNGkind("L'Ecuyer-CMRG") # L'Ecuyer CMRG required for multiple streams
@@ -16,15 +16,15 @@ for (i in 1:igrid){
 
 # no. of repetitions and mcmc iterations
 nreps <- 10
-k <- 426
-K <- 4260
+k <- 71
+K <- 710
 
 # specify stepsize and no. of steps
-stepsize <- 0.17
+stepsize <- 0.13
 nsteps <- 10
 
 # define hmc kernel
-hmc <- get_hmc_kernel(logtarget, gradlogtarget, stepsize, nsteps, dimension)
+hmc <- get_rm_hmc_kernel(logtarget, gradlogtarget, stepsize, nsteps, dimension, metric)
 
 # define mixture kernels
 omega <- 1 / 20
@@ -66,6 +66,6 @@ for(irep in 1:nreps){
   cat("Repetition:", irep, "/", nreps, "\n")
 }
 
-filename <- paste("output.hmc.repeat", igrid, ".RData", sep = "")
+filename <- paste("output.rm.hmc.repeat", igrid, ".RData", sep = "")
 save(nreps, k, K, stepsize, nsteps, runtimes, meetingtime,
      mean_estimates, var_estimates, file = filename, safe = F)

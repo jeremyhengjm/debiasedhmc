@@ -44,19 +44,19 @@ Sigma_proposal <- Sigma_std^2 * diag(1, dimension, dimension) # try 1e-8, 1e-10 
 mh <- get_mh_kernel(logtarget, Sigma_proposal, dimension)
 
 # mixture kernels
-mixture_kernel <- function(chain_state, iteration){
+mixture_kernel <- function(chain_state, current_pdf, iteration){
   if (runif(1) < omega){
-    return(mh$kernel(chain_state, iteration))
+    return(mh$kernel(chain_state, current_pdf, iteration))
   } else {
-    return(hmc$kernel(chain_state, iteration))
+    return(hmc$kernel(chain_state, current_pdf, iteration))
   }
 }
 
-mixture_coupled_kernel <- function(chain_state1, chain_state2, iteration){
+mixture_coupled_kernel <- function(chain_state1, chain_state2, current_pdf1, current_pdf2, iteration){
   if (runif(1) < omega){
-    return(mh$coupled_kernel(chain_state1, chain_state2, iteration))
+    return(mh$coupled_kernel(chain_state1, chain_state2, current_pdf1, current_pdf2, iteration))
   } else {
-    return(hmc$coupled_kernel(chain_state1, chain_state2, iteration))
+    return(hmc$coupled_kernel(chain_state1, chain_state2, current_pdf1, current_pdf2, iteration))
   }
 }
 

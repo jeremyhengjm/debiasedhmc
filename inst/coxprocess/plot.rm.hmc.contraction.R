@@ -9,7 +9,7 @@ ngrid_nsteps <- length(grid_nsteps)
 results.df <- data.frame()
 max_results.df <- data.frame()
 for (igrid in 1:ngrid_stepsize){
-  filename <- paste("inst/coxprocess/output.rm.hmc.contraction", igrid, ".RData", sep = "")
+  filename <- paste("inst/coxprocess/output/output.rm.hmc.contraction", igrid, ".RData", sep = "")
   load(file = filename)
   for (istep in 1:ngrid_nsteps){
     results.df <- rbind(results.df, data.frame(stepsize = rep(grid_stepsize[igrid], nreps),
@@ -23,17 +23,17 @@ for (igrid in 1:ngrid_stepsize){
   file.remove(file = filename)
 }
 save(nreps, grid_stepsize, ngrid_stepsize, grid_nsteps, ngrid_nsteps,
-     results.df, max_results.df, file = "inst/coxprocess/output.rm.hmc.contraction.RData")
+     results.df, max_results.df, file = "inst/coxprocess/output/output.rm.hmc.contraction.RData")
 
 # distance after 1000 iterations (no colour)
-load(file = "inst/coxprocess/output.rm.hmc.contraction.RData")
+load(file = "inst/coxprocess/output/output.rm.hmc.contraction.RData")
 g <- ggplot(results.df, aes(x = stepsize, y = distance)) +
   geom_point(aes(shape = factor(nsteps))) +
   scale_shape_discrete(name = "steps") +
   scale_y_log10() +
   labs(x = "stepsize", y = "distance after 1000 iterations")
 g
-# ggsave(filename = "inst/coxprocess/coxprocess.rm.hmc.contraction.pdf", plot = g, width = 9, height = 6)
+# ggsave(filename = "inst/coxprocess/plots/coxprocess.rm.hmc.contraction.pdf", plot = g, width = 9, height = 6)
 
 # distance after 1000 iterations (in colour)
 g <- ggplot(results.df, aes(x = stepsize, y = distance)) +
@@ -42,7 +42,7 @@ g <- ggplot(results.df, aes(x = stepsize, y = distance)) +
   scale_y_log10() +
   labs(x = "stepsize", y = "distance after 1000 iterations")
 g
-# ggsave(filename = "inst/coxprocess/coxprocess.rm.hmc.contraction.pdf", plot = g, width = 9, height = 6)
+# ggsave(filename = "inst/coxprocess/plots/coxprocess.rm.hmc.contraction.pdf", plot = g, width = 9, height = 6)
 
 # distance against integration time
 ggplot(results.df, aes(x = time, y = distance)) +

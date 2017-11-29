@@ -58,11 +58,13 @@ for (istep in 1:ngrid_nsteps){
   # run hmc
   chain <- matrix(nrow = nmcmc, ncol = dimension)
   current_x <- rinit() # initialize
+  current_pdf <- logtarget(current_x)
   accept <- 0
   tic()
   for (imcmc in 1:nmcmc){
-    current_state <- hmc$kernel(current_x, imcmc)
+    current_state <- hmc$kernel(current_x, current_pdf, imcmc)
     current_x <- current_state$chain_state
+    current_pdf <- current_state$current_pdf
     chain[imcmc, ] <- current_x
     accept <- accept + current_state$accept
     cat("No. of steps", nsteps, "Iteration:", imcmc, "/", nmcmc, "\n")

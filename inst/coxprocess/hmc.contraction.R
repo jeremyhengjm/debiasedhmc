@@ -41,7 +41,7 @@ for (istep in 1:ngrid_nsteps){
 
   # run hmc
   for (irep in 1:nreps){
-    cchains <- coupled_chains(hmc$kernel, hmc$coupled_kernel, rinit, max_iterations = max_iterations)
+    cchains <- coupled_chains(logtarget, hmc$kernel, hmc$coupled_kernel, rinit, max_iterations = max_iterations)
     distance[irep, istep] <- compute_distance(cchains)
     cat("No. of steps", nsteps, "Repetition:", irep, "/", nreps, "\n")
   }

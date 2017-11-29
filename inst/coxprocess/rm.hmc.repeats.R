@@ -17,7 +17,7 @@ for (i in 1:igrid){
 # no. of repetitions and mcmc iterations
 nreps <- 10
 k <- 71
-K <- 710
+m <- 710
 
 # specify stepsize and no. of steps
 stepsize <- 0.13
@@ -52,20 +52,22 @@ mixture_coupled_kernel <- function(chain_state1, chain_state2, iteration){
 # compute estimates
 runtimes <- rep(0, nreps)
 meetingtime <- rep(0, nreps)
-mean_estimates <- matrix(nrow = nreps, ncol = dimension)
-var_estimates <- matrix(nrow = nreps, ncol = dimension)
+unbiased_estimates <- matrix(nrow = nreps, ncol = 2 * dimension) # first and second moment
+mcmc_estimates <- matrix(nrow = nreps, ncol = 2 * dimension)
+
 for(irep in 1:nreps){
   tic()
-  cchains <- coupled_chains(mixture_kernel, mixture_coupled_kernel, rinit, K = K)
+  estimation_output <- unbiased_estimator(logtarget, mixture_kernel, mixture_coupled_kernel, rinit,
+                                          h = function(x) c(x, x^2), k = k, m = m)
   timing <- toc()
   runtime <- timing$toc - timing$tic
   runtimes[irep] <- runtime
-  meetingtime[irep] <- cchains$meetingtime
-  mean_estimates[irep, ] <- H_bar(cchains, h = function(x) x, k, K)
-  var_estimates[irep, ] <- H_bar(cchains, h = function(x) x^2, k, K)
+  meetingtime[irep] <- estimation_output$meetingtime
+  unbiased_estimates[irep, ] <- estimation_output$uestimator
+  mcmc_estimates[irep, ] <- estimation_output$mcmcestimator
   cat("Repetition:", irep, "/", nreps, "\n")
 }
 
 filename <- paste("output.rm.hmc.repeat", igrid, ".RData", sep = "")
-save(nreps, k, K, stepsize, nsteps, runtimes, meetingtime,
-     mean_estimates, var_estimates, file = filename, safe = F)
+save(nreps, k, m, stepsize, nsteps, runtimes, meetingtime,
+     unbiased_estimates, mcmc_estimates, file = filename, safe = F)

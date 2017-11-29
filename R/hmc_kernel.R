@@ -30,27 +30,27 @@ get_hmc_kernel <- function(logtarget, gradlogtarget, stepsize, nsteps, dimension
   }
 
   # One step of HMC
-  kernel <- function(chain_state, iteration){
+  kernel <- function(chain_state, current_pdf, iteration){
     current_v <- rnorm(dimension) # velocity or momentum
     leapfrog_result <- leapfrog(chain_state, current_v)
     proposed_v <- - leapfrog_result$v
     proposed_x <- leapfrog_result$x
-    # if we were a bit smarter, we would save logtarget(chain_state) so as
-    # to not re-evaluate it at every step
-    accept_ratio <- logtarget(proposed_x) - logtarget(chain_state)
+    proposed_pdf <- logtarget(proposed_x)
+    accept_ratio <- proposed_pdf - current_pdf
     # the acceptance ratio also features the "kinetic energy" term of the extended target
     accept_ratio <- accept_ratio + sum(current_v^2) / 2 - sum(proposed_v^2) / 2
     accept <- FALSE
     if (log(runif(1)) < accept_ratio){
       chain_state <- proposed_x
+      current_pdf <- proposed_pdf
       accept <- TRUE
     } else {
     }
-    return(list(chain_state = chain_state, accept = accept))
+    return(list(chain_state = chain_state, current_pdf = current_pdf, accept = accept))
   }
 
   # One step of coupled HMC
-  coupled_kernel <- function(chain_state1, chain_state2, iteration){
+  coupled_kernel <- function(chain_state1, chain_state2, current_pdf1, current_pdf2, iteration){
     current_v <- rnorm(dimension) # velocity or momentum, shared by both chains
     leapfrog_result1 <- leapfrog(chain_state1, current_v)
     leapfrog_result2 <- leapfrog(chain_state2, current_v)
@@ -58,10 +58,11 @@ get_hmc_kernel <- function(logtarget, gradlogtarget, stepsize, nsteps, dimension
     proposed_x1 <- leapfrog_result1$x
     proposed_v2 <- - leapfrog_result2$v
     proposed_x2 <- leapfrog_result2$x
-    # if we were a bit smarter, we would save logtarget(current_x) so as
-    # to not re-evaluate it at every step
-    accept_ratio1 <- logtarget(proposed_x1) - logtarget(chain_state1)
-    accept_ratio2 <- logtarget(proposed_x2) - logtarget(chain_state2)
+
+    proposed_pdf1 <- logtarget(proposed_x1)
+    proposed_pdf2 <- logtarget(proposed_x2)
+    accept_ratio1 <- proposed_pdf1 - current_pdf1
+    accept_ratio2 <- proposed_pdf2 - current_pdf2
     # the acceptance ratio also features the "kinetic energy" term of the extended target
     current_kinetic_energy <- sum(current_v^2) / 2
     accept_ratio1 <- accept_ratio1 + current_kinetic_energy - sum(proposed_v1^2) / 2
@@ -69,11 +70,14 @@ get_hmc_kernel <- function(logtarget, gradlogtarget, stepsize, nsteps, dimension
     logu <- log(runif(1)) # shared by both chains
     if (logu < accept_ratio1){
       chain_state1 <- proposed_x1
+      current_pdf1 <- proposed_pdf1
     }
     if (logu < accept_ratio2){
       chain_state2 <- proposed_x2
+      current_pdf2 <- proposed_pdf2
     }
-    return(list(chain_state1 = chain_state1, chain_state2 = chain_state2))
+    return(list(chain_state1 = chain_state1, chain_state2 = chain_state2,
+                current_pdf1 = current_pdf1, current_pdf2 = current_pdf2))
   }
   return(list(kernel = kernel, coupled_kernel = coupled_kernel))
 }

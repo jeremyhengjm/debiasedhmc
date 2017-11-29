@@ -31,7 +31,7 @@ compute_distance <- function(cchain){
 
 # no. of repetitions and mcmc iterations
 nreps <- 2
-K <- 1000
+m <- 1000
 max_iterations <- 1000
 
 # define hmc kernel
@@ -65,7 +65,7 @@ meetingtime <- rep(0, nreps)
 for (irep in 1:nreps){
   cat("Repetition:", irep, "/", nreps, "\n")
   tic()
-  cchains <- coupled_chains(mixture_kernel, mixture_coupled_kernel, rinit, K = K, max_iterations = max_iterations)
+  cchains <- coupled_chains(logtarget, mixture_kernel, mixture_coupled_kernel, rinit, m = m, max_iterations = max_iterations)
   toc()
   distance[[irep]] <- compute_distance(cchains)
   meetingtime[irep] <- cchains$meetingtime

@@ -1,6 +1,7 @@
 # process output files
 rm(list=ls())
 library(ggplot2)
+library(gridExtra)
 njobs <- 50
 nreps <- 2
 nrepeats <- njobs * nreps
@@ -18,7 +19,7 @@ for (iparameter in 2:nrow(contraction.df)){
   meetingtimes <- rep(0, nrepeats)
   distance.df <- data.frame()
   for (ijob in 1:njobs){
-    filename <- paste("inst/coxprocess/output.hmc.parameter", iparameter, ".rep", ijob, ".RData", sep = "")
+    filename <- paste("inst/coxprocess/output/output.hmc.parameter", iparameter, ".rep", ijob, ".RData", sep = "")
     load(file = filename)
 
     for (irep in 1:nreps){
@@ -29,7 +30,7 @@ for (iparameter in 2:nrow(contraction.df)){
     }
     file.remove(file = filename)
   }
-  combined_filename <- paste("inst/coxprocess/output.hmc.parameter", iparameter, ".RData", sep = "")
+  combined_filename <- paste("inst/coxprocess/output/output.hmc.parameter", iparameter, ".RData", sep = "")
   save(nrepeats, stepsize, nsteps, meetingtimes, distance.df, file = combined_filename)
 }
 
@@ -42,9 +43,8 @@ mean_cost <- rep(0, nrow(contraction.df))
 store_meetingtimes <- matrix(nrow = nrow(contraction.df), ncol = nrepeats)
 for (iparameter in 1:nrow(contraction.df)){
   # current configuration
-  combined_filename <- paste("inst/coxprocess/output.hmc.parameter", iparameter, ".RData", sep = "")
+  combined_filename <- paste("inst/coxprocess/output/output.hmc.parameter", iparameter, ".RData", sep = "")
   load(file = combined_filename)
-  # cat("stepsize =", contraction.df$stepsize[iparameter], ",", "steps =", contraction.df$nsteps[iparameter], "\n")
   glabel <- paste("stepsize = ", contraction.df$stepsize[iparameter], ", ",
                   "steps = ", contraction.df$nsteps[iparameter], sep = "")
 
@@ -60,9 +60,10 @@ for (iparameter in 1:nrow(contraction.df)){
   ghist[[iparameter]] <- g
 
   # distance over iterations
-  g <- ggplot(distance.df, aes(x = iteration, y = distance, group = repetition)) + geom_line(alpha = 0.25) +
+  g <- ggplot(distance.df, aes(x = iteration, y = distance, group = repetition)) +
+        geom_line(alpha = 0.25) +
         xlab('iteration') + ylab('distance') + xlim(0, 1000) +
-        scale_y_log10() + #breaks = c(1e-5, 1e-3, 1e-1, 10), limits = c(1e-6, 3))
+        scale_y_log10() +
         ggtitle(label = glabel)
   gdistance[[iparameter]] <- g
 
@@ -81,14 +82,14 @@ summary(store_meetingtimes[index_min, ])
 grid.arrange(arrangeGrob(ghist[[1]], ghist[[2]], ghist[[3]],
                          ghist[[4]], ghist[[5]], ghist[[6]],
                          nrow = 3, ncol = 2))
-# g_filename <- paste("inst/coxprocess/hmc.meetingtimes.pdf")
+# g_filename <- paste("inst/coxprocess/plots/hmc.meetingtimes.pdf")
 # ggsave(filename = g_filename, plot = g, width = 9, height = 6)
 
 # plot distance over iterations
 grid.arrange(arrangeGrob(gdistance[[1]], gdistance[[2]], gdistance[[3]],
                               gdistance[[4]], gdistance[[5]], gdistance[[6]],
                               nrow = 3, ncol = 2))
-# g_filename <- paste("inst/coxprocess/hmc.distance.pdf")
+# g_filename <- paste("inst/coxprocess/plots/hmc.distance.pdf")
 # ggsave(filename = g_filename, plot = g, width = 9, height = 6)
 
 

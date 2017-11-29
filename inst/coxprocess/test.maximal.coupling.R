@@ -43,7 +43,9 @@ for (irep in 1:nreps){
   current_x1 <- rinit()
   current_x2 <- current_x1 + rep(threshold / sqrt(dimension) , dimension) # chains are distance threshold apart
 
-  output_mh <- mh$coupled_kernel(current_x1, current_x2, 0)
+  current_pdf1 <- logtarget(current_x1)
+  current_pdf2 <- logtarget(current_x2)
+  output_mh <- mh$coupled_kernel(current_x1, current_x2, current_pdf1, current_pdf2, 0)
   current_x1 <- output_mh$chain_state1
   current_x2 <- output_mh$chain_state2
   meet <- meet + all(current_x1 == current_x2)

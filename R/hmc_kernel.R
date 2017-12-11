@@ -40,11 +40,15 @@ get_hmc_kernel <- function(logtarget, gradlogtarget, stepsize, nsteps, dimension
     # the acceptance ratio also features the "kinetic energy" term of the extended target
     accept_ratio <- accept_ratio + sum(current_v^2) / 2 - sum(proposed_v^2) / 2
     accept <- FALSE
-    if (log(runif(1)) < accept_ratio){
+    if (is.finite(accept_ratio)){
+      accept <- (log(runif(1)) < accept_ratio)
+    }
+
+    # if (log(runif(1)) < accept_ratio){
+    if (accept){
       chain_state <- proposed_x
       current_pdf <- proposed_pdf
       accept <- TRUE
-    } else {
     }
     return(list(chain_state = chain_state, current_pdf = current_pdf, accept = accept))
   }
@@ -68,16 +72,29 @@ get_hmc_kernel <- function(logtarget, gradlogtarget, stepsize, nsteps, dimension
     accept_ratio1 <- accept_ratio1 + current_kinetic_energy - sum(proposed_v1^2) / 2
     accept_ratio2 <- accept_ratio2 + current_kinetic_energy - sum(proposed_v2^2) / 2
     logu <- log(runif(1)) # shared by both chains
-    if (logu < accept_ratio1){
+    accept1 <- FALSE
+    accept2 <- FALSE
+    if (is.finite(accept_ratio1)){
+      accept1 <- (logu < accept_ratio1)
+    }
+    # if (logu < accept_ratio1){
+    if (accept1){
       chain_state1 <- proposed_x1
       current_pdf1 <- proposed_pdf1
+      accept1 <- TRUE
     }
-    if (logu < accept_ratio2){
+    if (is.finite(accept_ratio2)){
+      accept2 <- (logu < accept_ratio2)
+    }
+    # if (logu < accept_ratio2){
+    if (accept2){
       chain_state2 <- proposed_x2
       current_pdf2 <- proposed_pdf2
+      accept2 <- TRUE
     }
     return(list(chain_state1 = chain_state1, chain_state2 = chain_state2,
-                current_pdf1 = current_pdf1, current_pdf2 = current_pdf2))
+                current_pdf1 = current_pdf1, current_pdf2 = current_pdf2,
+                accept1 = accept1, accept2 = accept2))
   }
   return(list(kernel = kernel, coupled_kernel = coupled_kernel))
 }

@@ -23,9 +23,9 @@ get_mh_kernel <- function(logtarget, Sigma_proposal, dimension){
     proposal_pdf <- logtarget(proposal_value)
     accept <- (log(runif(1)) < (proposal_pdf - current_pdf))
     if (accept){
-      return(list(chain_state = proposal_value, current_pdf = proposal_pdf))
+      return(list(chain_state = proposal_value, current_pdf = proposal_pdf, accept = accept))
     } else {
-      return(list(chain_state = chain_state, current_pdf = current_pdf))
+      return(list(chain_state = chain_state, current_pdf = current_pdf, accept = accept))
     }
   }
 
@@ -37,6 +37,7 @@ get_mh_kernel <- function(logtarget, Sigma_proposal, dimension){
                                                        Sigma1_chol_inv, Sigma1_chol_inv)
     proposal1 <- proposal_value[,1]
     proposal2 <- proposal_value[,2]
+    overlap <- all(proposal1 == proposal2) # keep track of stuff [delete]
     proposal_pdf1 <- logtarget(proposal1)
     proposal_pdf2 <- logtarget(proposal2)
 
@@ -58,7 +59,8 @@ get_mh_kernel <- function(logtarget, Sigma_proposal, dimension){
       current_pdf2 <- proposal_pdf2
     }
     return(list(chain_state1 = chain_state1, chain_state2 = chain_state2,
-                current_pdf1 = current_pdf1, current_pdf2 = current_pdf2))
+                current_pdf1 = current_pdf1, current_pdf2 = current_pdf2,
+                accept1 = accept1, accept2 = accept2, overlap = overlap))
   }
 
   return(list(kernel = kernel, coupled_kernel = coupled_kernel))

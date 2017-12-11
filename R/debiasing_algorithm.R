@@ -25,10 +25,10 @@
 #'@export
 coupled_chains <- function(logtarget, single_kernel, coupled_kernel, rinit, m = 1, max_iterations = Inf, preallocate = 10){
   # keep track of stuff [delete]
-  logical_rwmh <- logical(max_iterations) # if RWMH component was sampled
-  logical_accept1 <- logical(max_iterations) # if chain 1 accepts proposal
-  logical_accept2 <- logical(max_iterations) # if chain 2 accepts proposal
-  logical_overlap <- logical(max_iterations) # if RWMH component sampled and maximal coupling samples from overlap
+  # logical_rwmh <- logical(max_iterations) # if RWMH component was sampled
+  # logical_accept1 <- logical(max_iterations) # if chain 1 accepts proposal
+  # logical_accept2 <- logical(max_iterations) # if chain 2 accepts proposal
+  # logical_overlap <- logical(max_iterations) # if RWMH component sampled and maximal coupling samples from overlap
 
   # initialize
   chain_state1 <- rinit()
@@ -68,9 +68,9 @@ coupled_chains <- function(logtarget, single_kernel, coupled_kernel, rinit, m = 
       current_pdf2 <- current_pdf1
 
       # keep track of stuff [delete]
-      logical_rwmh[iter] <- res_single_kernel$rwmh
-      logical_accept1[iter] <- res_single_kernel$accept
-      logical_accept2[iter] <- res_single_kernel$accept
+      # logical_rwmh[iter] <- res_single_kernel$rwmh
+      # logical_accept1[iter] <- res_single_kernel$accept
+      # logical_accept2[iter] <- res_single_kernel$accept
 
     } else {
       # use coupled kernel
@@ -81,10 +81,10 @@ coupled_chains <- function(logtarget, single_kernel, coupled_kernel, rinit, m = 
       current_pdf2 <- res_coupled_kernel$current_pdf2
 
       # keep track of stuff [delete]
-      logical_rwmh[iter] <- res_coupled_kernel$rwmh
-      logical_accept1[iter] <- res_coupled_kernel$accept1
-      logical_accept2[iter] <- res_coupled_kernel$accept2
-      logical_overlap[iter] <- res_coupled_kernel$overlap
+      # logical_rwmh[iter] <- res_coupled_kernel$rwmh
+      # logical_accept1[iter] <- res_coupled_kernel$accept1
+      # logical_accept2[iter] <- res_coupled_kernel$accept2
+      # logical_overlap[iter] <- res_coupled_kernel$overlap
 
       # check if meeting happens
       if (all(chain_state1 == chain_state2) && !meet){
@@ -116,9 +116,9 @@ coupled_chains <- function(logtarget, single_kernel, coupled_kernel, rinit, m = 
   samples1 <- samples1[1:current_nsamples1,,drop=F]
   samples2 <- samples2[1:(current_nsamples1-1),,drop=F]
   return(list(samples1 = samples1, samples2 = samples2,
-              meetingtime = meetingtime, iteration = iter, finished = finished,
-              logical_rwmh = logical_rwmh, logical_accept1 = logical_accept1,
-              logical_accept2 = logical_accept2, logical_overlap = logical_overlap))
+              meetingtime = meetingtime, iteration = iter, finished = finished))
+              # logical_rwmh = logical_rwmh, logical_accept1 = logical_accept1,
+              # logical_accept2 = logical_accept2, logical_overlap = logical_overlap))
 
 }
 
